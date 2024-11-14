@@ -1,68 +1,57 @@
 class Star 
 {
-  float x, y, speedX, speedY, size ;
+  float x, y ;
+  float speedX, speedY ;
+  float size ;
+  float brightness ;
   color starColor ;
-  
-  Star () 
-  {
-    // outside the center area where text is displayed
-    x = random (width) ;
-    y = random (height) ;
-    
-    while (y > height / 3 && y < 2 * height / 3) 
+
+  Star (float x, float y) 
     {
-      x = random (width) ;
-      y = random (height) ;
+      this.x = x ;
+      this.y = y ;
+      this.size = random (3, 8); // random size 3-8
+      this.brightness = random (150, 255) ; // random twinkling 
+      speedX = random (-0.5, 0.5) ;
+      speedY = random (-0.5, 0.5) ;
+    
+      // yellow or white
+      starColor = (random(1) > 0.5) ? color(255, 255, 0) : color(255) ; 
     }
 
-    speedX = random (-2, 2) ;
-    speedY = random (-2, 2) ;
-    size = random (3, 8) ; // smaller stars
-    
-    // random white and yellow
-    if (random(1) > 0.5) 
-    {
-      starColor = color(255, 255, 0) ; // yellow
-    } 
-    else 
-    {
-      starColor = color(255) ; //white
-    }
-  }
-  
-  void update() {
-    x += speedX;
-    y += speedY;
-    
-    // Wrap around the screen
-    if (x > width) x = 0;
-    if (x < 0) x = width;
-    if (y > height) y = 0;
-    if (y < 0) y = height;
-  }
-  
-  void display() 
+void update () 
   {
+    // position update
+    x += speedX ;
+    y += speedY ;
+
+    // bouncing off edges
+    if (x < 0 || x > width) speedX *= -1 ;
+    if (y < 0 || y > height) speedY *= -1 ;
+
+    // brightness twinkling 
+    brightness = 150 + 100 * sin(millis() * 0.005 + random(0, TWO_PI)) ; // sine wave oscillation, .005
+  }
+
+void display () 
+  {
+    fill (starColor, brightness); // star color for twinking 
     noStroke () ;
-    fill (starColor) ;
-    drawStar(x, y, size / 2, size, 5) ; // star
-  }
-}
 
-// draw a star
-void drawStar(float x, float y, float radius1, float radius2, int npoints) 
-{
-  float angle = TWO_PI / npoints ;
-  float halfAngle = angle / 2.0 ;
-  beginShape () ;
-  for (float a = -PI/2; a < TWO_PI; a += angle) 
-  {
-    float sx = x + cos(a) * radius2 ;
-    float sy = y + sin(a) * radius2 ;
-    vertex (sx, sy) ;
-    sx = x + cos (a + halfAngle) * radius1 ;
-    sy = y + sin (a + halfAngle) * radius1 ;
-    vertex (sx, sy) ;
+    // draw star
+    pushMatrix () ;
+    translate (x, y) ;
+    beginShape () ;
+    for (int i = 0; i < 10; i++) // loop 
+      {
+        float angle = TWO_PI / 10 * i ; // angle calculation 
+        float radius = (i % 2 == 0) ? size : size / 2 ; 
+        float xOuter = cos(angle) * radius ;
+        float yOuter = sin(angle) * radius ;
+        vertex(xOuter, yOuter) ;
+      } // end for 
+      
+    endShape (CLOSE) ;
+    popMatrix () ;
   }
-  endShape (CLOSE) ;
 }

@@ -1,29 +1,30 @@
-class Projectile 
+class Projectile extends GameObject 
 {
-  float x, y ;
-  float speedX, speedY ;
-  
-  // constructor for rocket position
-  Projectile(float startX, float startY) 
-    {
-      x = startX ;
-      y = startY ;
-      speedX = random (-3, 3) ; 
-      speedY = -5 ; 
-    }
-  
-  
+  private float speedY = -5 ;
+
+  Projectile (float x, float y) 
+  {
+    super (x, y) ;
+  }
+
 void update () 
-{
-   x += speedX ;
-   y += speedY ;
-}
-  
-// display the projectile
+  {
+    y += speedY ;
+  }
+
 void display () 
-{
-  fill(255, 0, 0) ; // red 
-    noStroke () ;
-    ellipse (x, y, 10, 10) ; // red circles
-}
+  {
+    fill (255, 255, 0) ;
+    ellipse (x, y, 10, 10) ;
+  }
+
+boolean isOutOfBounds() 
+  {
+    return y < 0 ;
+  }
+
+boolean collidesWith (GameObject obj) 
+  {
+    return dist (x, y, obj.getX(), obj.getY()) < 20 ;
+  }
 }
