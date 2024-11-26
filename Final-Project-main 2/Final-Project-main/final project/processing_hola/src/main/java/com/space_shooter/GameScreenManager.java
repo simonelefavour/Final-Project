@@ -1,94 +1,117 @@
 /* Coder: Simone LeFavour
- * Date: Nov. 21, 2024
- * Description: Final Project for Creative Computation III. Space Shooter game. The game screen manager has all the screens including title, main menu, countdown, etc. It displays the transitions and make sure everything runs smoothly 
+ * Date: Nov. 26, 2024
+ * Description: Final Project for Creative Computation III. Space Shooter game. The game screen manager class
+ * manages the various game screens, including the title screen, countdown, main menu, and game screen.
  */
 
 package com.space_shooter;
 
 import processing.core.PApplet;
 import processing.core.PFont;
-
 import java.util.ArrayList;
 
 public class GameScreenManager {
     private int screenState = 0; // title, countdown, main
-    private int countdownStartTime;
-    private boolean showText = true;
+    private int countdownStartTime; // time when countdown starts
+    private boolean showText = true; // blinking text effect
     private int lastToggleTime = 0;
-    private String countdownText = "";
-    private ArrayList<Star> stars;
-    private ArrayList<BackgroundStar> backgroundStars; // for twinkling stars
-    private PApplet app;
-    private ArrayList<Button> levelButtons; // level
-    private Button goBackButton; // go back
+    private String countdownText = ""; // text displayed during countdown
+    private ArrayList<Star> stars; // list of stars for the title screen
+    private ArrayList<BackgroundStar> backgroundStars; // list of stars for other screens
+    private ArrayList<Button> levelButtons; // list of buttons for level selection
+    private Button goBackButton; // button to go back to the title screen
+    private PFont byteBounceFont; //
+    private PApplet app; //
 
-    private PFont byteBounceFont; // font
+    // references to the player, level, and enemy manager
+    private Player rocket;
+    private int level;
+    private EnemyManager enemyManager;
 
     // constructor
-    public GameScreenManager(PApplet app, ArrayList<Star> stars) {
+    public GameScreenManager(PApplet app, ArrayList<Star> stars, Player rocket, int level, EnemyManager enemyManager) {
         this.app = app;
         this.stars = stars;
-
-        byteBounceFont = app.createFont("ByteBounce.ttf", 32); // title
+        this.rocket = rocket; // reference to the player's rocket
+        this.level = level; // reference to the level
+        this.enemyManager = enemyManager; // reference to the enemy manager
+        byteBounceFont = app.createFont("ByteBounce.ttf", 32);
 
         // level buttons
         levelButtons = new ArrayList<>();
-        levelButtons.add(new Button(
-                app.width / 2 - 100, app.height / 2, 200, 50, "LEVEL 1",
-                app.color(0, 128, 0), app.color(0, 100, 0), app));
-        levelButtons.add(new Button(
-                app.width / 2 - 100, app.height / 2 + 70, 200, 50, "LEVEL 2",
-                app.color(0, 128, 0), app.color(0, 100, 0), app));
-        levelButtons.add(new Button(
-                app.width / 2 - 100, app.height / 2 + 140, 200, 50, "LEVEL 3",
-                app.color(0, 128, 0), app.color(0, 100, 0), app));
+        levelButtons.add(new Button(app.width / 2 - 100, app.height / 2, 200, 50, "LEVEL 1", app.color(0, 128, 0),
+                app.color(0, 100, 0), app));
+        levelButtons.add(new Button(app.width / 2 - 100, app.height / 2 + 70, 200, 50, "LEVEL 2", app.color(0, 128, 0),
+                app.color(0, 100, 0), app));
+        levelButtons.add(new Button(app.width / 2 - 100, app.height / 2 + 140, 200, 50, "LEVEL 3", app.color(0, 128, 0),
+                app.color(0, 100, 0), app));
 
-        // actions for level buttons
-        levelButtons.get(0).setAction(this::startCountdown);
-        levelButtons.get(1).setAction(this::startCountdown);
-        levelButtons.get(2).setAction(this::startCountdown);
+        // level button
+        levelButtons.get(0).setAction(() -> {
+            Main.setLevel(1); // 1
+            rocket.setLevel(Main.getLevel());
+            Main.setEnemyManager(new EnemyManager(app, Main.getLevel()));
+            startCountdown();
+        });
 
-        // background stars
+        levelButtons.get(1).setAction(() -> {
+            Main.setLevel(2); // 2
+            rocket.setLevel(Main.getLevel());
+            Main.setEnemyManager(new EnemyManager(app, Main.getLevel()));
+            startCountdown();
+        });
+
+        levelButtons.get(2).setAction(() -> {
+            Main.setLevel(3); // 3
+            rocket.setLevel(Main.getLevel()); //
+            Main.setEnemyManager(new EnemyManager(app, Main.getLevel()));
+            startCountdown();
+        });
+
+        // stars on screen, not title
         backgroundStars = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             backgroundStars.add(new BackgroundStar(app.random(app.width), app.random(app.height), app));
         }
 
-        // go back button
-        goBackButton = new Button(
-                20, app.height - 70, 150, 50, "GO BACK",
-                app.color(255), app.color(200), app);
-        goBackButton.setAction(() -> screenState = 0); // title screen
+        // go back
+        goBackButton = new Button(20, app.height - 70, 150, 50, "GO BACK", app.color(255), app.color(200), app);
+        goBackButton.setAction(() -> screenState = 0);
     }
 
+    // get current state
     public int getScreenState() {
         return screenState;
     }
 
+    // set current state
     public void setScreenState(int state) {
         screenState = state;
     }
 
-    // blinking text
+    // display
     public void displayTitleScreen() {
+
         for (Star star : stars) {
-            star.update(app); // update stars
-            star.display(app); // display stars
+            star.update(app);
+            star.display(app);
         }
 
+        // font and welcome
         app.textFont(byteBounceFont);
         app.fill(255);
-        app.textSize(80); // increase font
+        app.textSize(80);
         app.textAlign(PApplet.CENTER, PApplet.CENTER);
         app.text("WELCOME TO SPACE SHOOTER!!", app.width / 2, app.height / 2 - 40);
 
+        // blink
         if (app.millis() - lastToggleTime > 500) {
             showText = !showText;
             lastToggleTime = app.millis();
         }
 
         if (showText) {
-            app.textSize(40); // press enter
+            app.textSize(40);
             app.text("Press ENTER to Start", app.width / 2, app.height / 2 + 40);
         }
     }
@@ -96,21 +119,23 @@ public class GameScreenManager {
     // countdown
     public void startCountdown() {
         countdownStartTime = app.millis();
-        screenState = 1; // transition to countdown screen
+        screenState = 1;
     }
 
-    // display the countdown screen
+    // background for countdown
     public void displayCountdown() {
+
         for (BackgroundStar star : backgroundStars) {
             star.update();
             star.display();
         }
 
         int elapsed = app.millis() - countdownStartTime;
-        app.fill(255, 255, 0); // yellow color for countdown
+        app.fill(255, 255, 0);
         app.textSize(60);
         app.textAlign(PApplet.CENTER, PApplet.CENTER);
 
+        // update text
         if (elapsed < 1000) {
             countdownText = "STARTING IN 3";
         } else if (elapsed < 2000) {
@@ -120,18 +145,20 @@ public class GameScreenManager {
         } else if (elapsed < 4000) {
             countdownText = "GO!";
         } else {
-            screenState = 2; // transition to game screen after countdown
+            screenState = 2; // game screen
         }
         app.text(countdownText, app.width / 2, app.height / 2);
     }
 
-    // display the main menu with buttons
+    // level selection
     public void displayMainMenu() {
+        // stars
         for (BackgroundStar star : backgroundStars) {
             star.update();
             star.display();
         }
 
+        // blink
         if (app.millis() - lastToggleTime > 500) {
             showText = !showText;
             lastToggleTime = app.millis();
@@ -141,32 +168,26 @@ public class GameScreenManager {
             app.fill(255);
             app.textSize(55);
             app.textAlign(PApplet.CENTER, PApplet.CENTER);
-            app.text("SELECT LEVEL", app.width / 2, app.height / 2 - 150);
+            app.text("SELECT LEVEL", app.width / 2, app.height / 2 - 100);
         }
 
-        // display level selection buttons
-        float buttonHeight = 70;
-        float buttonSpacing = 20;
-        float totalButtonHeight = buttonHeight * 3 + buttonSpacing * 2;
-        float buttonYStart = (app.height / 2) - (totalButtonHeight / 2) + 50;
-
-        levelButtons.get(0).setY(buttonYStart);
-        levelButtons.get(1).setY(buttonYStart + buttonHeight + buttonSpacing);
-        levelButtons.get(2).setY(buttonYStart + (buttonHeight + buttonSpacing) * 2);
-
+        // display levels and click
         for (Button button : levelButtons) {
-            button.display(app); // display button
-            button.checkClick(app); // check if button is clicked
+            button.display(app);
+            button.checkClick(app);
         }
 
-        goBackButton.display(app); // display "go back" button
-        goBackButton.checkClick(app); // check if button is clicked
+        // display and click
+        goBackButton.display(app);
+        goBackButton.checkClick(app);
     }
 
+    // main screen with stars
     public void displayGameScreen() {
+
         for (BackgroundStar star : backgroundStars) {
             star.update();
             star.display();
         }
     }
-}
+} // end game screen manager

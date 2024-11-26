@@ -1,6 +1,7 @@
 /* Coder: Simone LeFavour
- * Date: Nov. 21, 2024
- * Description: Final Project for Creative Computation III. Space Shooter game. The score manager class helps deal with the player score.
+ * Date: Nov. 26, 2024
+ * Description: Final Project for Creative Computation III. Space Shooter game. The score manager class 
+ * helps deal with the player score.
  */
 
 package com.space_shooter;
@@ -24,7 +25,7 @@ public class ScoreManager {
     public void displayScore(PApplet app, int playerHealth) {
         app.fill(255);
         app.textSize(40);
-        app.text("SCORE: " + score, 70, 60); // top left
+        app.text("SCORE: " + score, 90, 60); // top left
         app.text("HEALTH: " + playerHealth, app.width - 100, 60); // top right
     }
-}
+} // end score manager class
