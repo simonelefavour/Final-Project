@@ -1,6 +1,6 @@
 /* Coder: Simone LeFavour
  * Date: Nov. 21, 2024
- * Description: Final Project for Creative Computation III. Space Shooter game. The main class has the variables, set ups, methods, and initalizing for the game to run. 
+ * Description: Final Project for Creative Computation III. Space Shooter game. The main class has the variables, set ups, methods, and initializing for the game to run. 
  */
 
 package com.space_shooter;
@@ -9,108 +9,139 @@ import processing.core.PApplet;
 import java.util.ArrayList;
 
 public class Main extends PApplet {
-    // variables for the player, enemy, stars
+    // Variables for the player, enemy, stars
     private Player rocket;
-    private Enemy enemy;
-    private ArrayList<Star> stars = new ArrayList<>();
+    private EnemyManager enemyManager;
+    private PowerUpManager powerUpManager;
     private GameScreenManager screenManager;
     private ScoreManager scoreManager;
     private ProjectileManager projectileManager;
     private int lastShotTime = 0;
     private int shotInterval = 200;
+    private boolean isPaused = false; // Pause state
 
-    // method to run
+    // Method to run
     public static void main(String[] args) {
         PApplet.main("com.space_shooter.Main");
     }
 
-    // set up for game screen
+    // Set up for game screen
     public void settings() {
         fullScreen();
     }
 
-    // initialize game
+    // Initialize game
     public void setup() {
-        // player and enemy
         rocket = new Player(width / 2, height - 50);
-        enemy = new Enemy(width / 2, 50);
+        projectileManager = new ProjectileManager();
 
-        // initialize background stars
+        // Initialize stars for the title screen
+        ArrayList<Star> stars = new ArrayList<>();
         for (int i = 0; i < 150; i++) {
             stars.add(new Star(random(width), random(height), this));
-        } // end for
+        }
 
-        // instance for game manager
-        screenManager = new GameScreenManager(this, stars);
+        enemyManager = new EnemyManager(this);
+        powerUpManager = new PowerUpManager(this);
+        screenManager = new GameScreenManager(this, stars); // Pass stars to GameScreenManager
         scoreManager = new ScoreManager();
-        projectileManager = new ProjectileManager();
-    } // end set up
+    }
 
-    // draw method for screen transitions and updates
+    // Draw method for screen transitions and updates
     public void draw() {
-        background(0); // black background
+        if (isPaused) {
+            displayPauseScreen();
+            return;
+        }
 
-        // switch with different screens
+        background(0); // Black background
+
+        // Switch with different screens
         switch (screenManager.getScreenState()) {
             case 0:
-                screenManager.displayTitleScreen(); // title screen
+                screenManager.displayTitleScreen();
                 break;
-
             case 1:
-                screenManager.displayCountdown(); // countdown screen
+                screenManager.displayCountdown();
                 break;
-
             case 2:
-                displayGameScreen(); // game screen
+                displayGameScreen();
                 break;
-
             case 3:
-                screenManager.displayMainMenu(); // main menu screen
+                screenManager.displayMainMenu();
                 break;
-        } // end switch
-    } // end draw
+        }
+    }
 
-    // game screen, player, enemy, handle shooting and collision
+    // Game screen, player, enemy, handle shooting and collision
     private void displayGameScreen() {
-        rocket.update(this); // update player movement
-        rocket.display(this); // display player
-        enemy.update(this); // enemy movement
-        enemy.display(this); // enemy on the screen
+        rocket.update(this); // Update player movement
+        rocket.display(this); // Display player
+        enemyManager.updateAndDisplay(this, projectileManager, scoreManager, rocket); // Enemies
+        powerUpManager.updateAndDisplay(this, rocket, scoreManager); // Power-ups
 
-        // shooting, mouse pressed
+        // Handle player shooting
         if (mousePressed && millis() - lastShotTime >= shotInterval) {
             projectileManager.addProjectile(rocket.getX(), rocket.getY());
             lastShotTime = millis();
-        } // end if
+        }
 
-        // update/display projectile
-        projectileManager.updateAndDisplay(this, enemy, scoreManager);
+        // Update and display projectiles
+        projectileManager.updateAndDisplay(this, enemyManager, scoreManager);
+
+        // Display score and health
         scoreManager.displayScore(this, rocket.getHealth());
 
-        // win or game over
-        if (enemy.getHealth() <= 0) {
-            displayEndMessage("You Win!"); // win message
+        // Check for win or game over
+        if (enemyManager.allEnemiesDefeated()) {
+            displayGameOverScreen("You Win!");
         } else if (rocket.getHealth() <= 0) {
-            displayEndMessage("Game Over!"); // game over message
+            displayGameOverScreen("Game Over!");
         }
-    } // end display game screen
+    }
 
-    // end game message
-    private void displayEndMessage(String message) {
+    // Pause screen
+    private void displayPauseScreen() {
+        fill(255);
+        textSize(40);
+        textAlign(CENTER, CENTER);
+        text("Game Paused\nPress SPACE to Resume", width / 2, height / 2);
+    }
+
+    // Game over screen with restart and exit buttons
+    private void displayGameOverScreen(String message) {
+        fill(0, 0, 0, 150);
+        rect(0, 0, width, height); // Overlay
         fill(255);
         textSize(48);
         textAlign(CENTER, CENTER);
-        text(message, width / 2, height / 2); // center message
-        noLoop(); // stop game loop
+        text(message, width / 2, height / 2 - 50);
+
+        Button restartButton = new Button(
+                width / 2 - 100, height / 2 + 50, 200, 50, "Restart", color(0, 128, 0), color(0, 100, 0), this);
+        Button exitButton = new Button(
+                width / 2 - 100, height / 2 + 120, 200, 50, "Exit", color(128, 0, 0), color(100, 0, 0), this);
+
+        restartButton.setAction(() -> screenManager.setScreenState(3));
+        exitButton.setAction(() -> screenManager.setScreenState(0));
+
+        restartButton.display(this);
+        exitButton.display(this);
+
+        if (mousePressed) {
+            restartButton.checkClick(this);
+            exitButton.checkClick(this);
+        }
     }
 
-    // press enter to change screens
+    // Key handling for pausing the game and moving to main menu
     public void keyPressed() {
-        if (key == ENTER) {
-            // main menue
-            if (screenManager.getScreenState() == 0) {
-                screenManager.setScreenState(3);
-            } // end if
-        } // end if
-    } // end key pressed
-} // end main class
+        if (key == ' ') {
+            isPaused = !isPaused; // Toggle pause
+        }
+
+        if (key == ENTER && screenManager.getScreenState() == 0) {
+            screenManager.setScreenState(3); // Go to main menu
+        }
+    }
+}

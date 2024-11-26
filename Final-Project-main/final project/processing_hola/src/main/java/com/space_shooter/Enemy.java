@@ -8,35 +8,41 @@ package com.space_shooter;
 import processing.core.PApplet;
 
 public class Enemy extends GameObject {
-    private int health = 50; // enemy health 
+    private int health = 50;
+    private int shootCooldown = 1000; // Enemy shooting interval
+    private long lastShotTime = 0;
 
-    // constructor 
     public Enemy(float x, float y) {
-        super(x, y); //
+        super(x, y);
     }
 
-    // position and behavior 
     @Override
     public void update(PApplet app) {
-        
+        // Movement logic here (e.g., zigzag)
+        if (app.millis() - lastShotTime >= shootCooldown) {
+            shoot(app);
+            lastShotTime = app.millis();
+        }
     }
 
-    // red squARE
     @Override
     public void display(PApplet app) {
-        app.fill(255, 0, 0); // Rred 
-        app.rectMode(PApplet.CENTER);
-        app.rect(x, y, 30, 30); 
+        app.fill(255, 0, 0); // Red
+        app.triangle(x - 10, y + 10, x + 10, y + 10, x, y - 20);
     }
 
-    //  enemy's health
-    public int getHealth() {
-        return health;
-    }
-
-    // decrease enemy health when it takes damage
     public void takeDamage() {
-        if (health > 0)
-            health -= 10; // Decrease health by 10
+        if (health > 0) {
+            health -= 10;
+        }
+    }
+
+    public boolean isDead() {
+        return health <= 0;
+    }
+
+    private void shoot(PApplet app) {
+        EnemyProjectile projectile = new EnemyProjectile(x, y + 15);
+        EnemyManager.addEnemyProjectile(projectile); // Add to manager
     }
 }
