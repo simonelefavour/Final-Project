@@ -9,7 +9,6 @@ import processing.core.PApplet;
 import java.util.ArrayList;
 
 public class Main extends PApplet {
-    // Variables for the player, enemy, stars
     private Player rocket;
     private EnemyManager enemyManager;
     private PowerUpManager powerUpManager;
@@ -18,24 +17,20 @@ public class Main extends PApplet {
     private ProjectileManager projectileManager;
     private int lastShotTime = 0;
     private int shotInterval = 200;
-    private boolean isPaused = false; // Pause state
+    private boolean isPaused = false;
 
-    // Method to run
     public static void main(String[] args) {
         PApplet.main("com.space_shooter.Main");
     }
 
-    // Set up for game screen
     public void settings() {
         fullScreen();
     }
 
-    // Initialize game
     public void setup() {
         rocket = new Player(width / 2, height - 50);
         projectileManager = new ProjectileManager();
 
-        // Initialize stars for the title screen
         ArrayList<Star> stars = new ArrayList<>();
         for (int i = 0; i < 150; i++) {
             stars.add(new Star(random(width), random(height), this));
@@ -43,20 +38,20 @@ public class Main extends PApplet {
 
         enemyManager = new EnemyManager(this);
         powerUpManager = new PowerUpManager(this);
-        screenManager = new GameScreenManager(this, stars); // Pass stars to GameScreenManager
+        screenManager = new GameScreenManager(this, stars);
         scoreManager = new ScoreManager();
+        enemyManager = new EnemyManager(this);
+
     }
 
-    // Draw method for screen transitions and updates
     public void draw() {
         if (isPaused) {
             displayPauseScreen();
             return;
         }
 
-        background(0); // Black background
+        background(0);
 
-        // Switch with different screens
         switch (screenManager.getScreenState()) {
             case 0:
                 screenManager.displayTitleScreen();
@@ -73,26 +68,20 @@ public class Main extends PApplet {
         }
     }
 
-    // Game screen, player, enemy, handle shooting and collision
     private void displayGameScreen() {
-        rocket.update(this); // Update player movement
-        rocket.display(this); // Display player
-        enemyManager.updateAndDisplay(this, projectileManager, scoreManager, rocket); // Enemies
-        powerUpManager.updateAndDisplay(this, rocket, scoreManager); // Power-ups
+        rocket.update(this);
+        rocket.display(this);
+        enemyManager.updateAndDisplay(this, projectileManager, scoreManager, rocket);
+        powerUpManager.updateAndDisplay(this, rocket, scoreManager);
 
-        // Handle player shooting
         if (mousePressed && millis() - lastShotTime >= shotInterval) {
             projectileManager.addProjectile(rocket.getX(), rocket.getY());
             lastShotTime = millis();
         }
 
-        // Update and display projectiles
         projectileManager.updateAndDisplay(this, enemyManager, scoreManager);
-
-        // Display score and health
         scoreManager.displayScore(this, rocket.getHealth());
 
-        // Check for win or game over
         if (enemyManager.allEnemiesDefeated()) {
             displayGameOverScreen("You Win!");
         } else if (rocket.getHealth() <= 0) {
@@ -100,7 +89,6 @@ public class Main extends PApplet {
         }
     }
 
-    // Pause screen
     private void displayPauseScreen() {
         fill(255);
         textSize(40);
@@ -108,10 +96,9 @@ public class Main extends PApplet {
         text("Game Paused\nPress SPACE to Resume", width / 2, height / 2);
     }
 
-    // Game over screen with restart and exit buttons
     private void displayGameOverScreen(String message) {
         fill(0, 0, 0, 150);
-        rect(0, 0, width, height); // Overlay
+        rect(0, 0, width, height);
         fill(255);
         textSize(48);
         textAlign(CENTER, CENTER);
@@ -122,8 +109,11 @@ public class Main extends PApplet {
         Button exitButton = new Button(
                 width / 2 - 100, height / 2 + 120, 200, 50, "Exit", color(128, 0, 0), color(100, 0, 0), this);
 
-        restartButton.setAction(() -> screenManager.setScreenState(3));
-        exitButton.setAction(() -> screenManager.setScreenState(0));
+        restartButton.setAction(() -> resetGame());
+        exitButton.setAction(() -> {
+            resetGame();
+            screenManager.setScreenState(0);
+        });
 
         restartButton.display(this);
         exitButton.display(this);
@@ -134,14 +124,22 @@ public class Main extends PApplet {
         }
     }
 
-    // Key handling for pausing the game and moving to main menu
+    private void resetGame() {
+        rocket = new Player(width / 2, height - 50);
+        enemyManager = new EnemyManager(this);
+        projectileManager = new ProjectileManager();
+        powerUpManager = new PowerUpManager(this);
+        scoreManager = new ScoreManager();
+        screenManager.setScreenState(3);
+    }
+
     public void keyPressed() {
         if (key == ' ') {
-            isPaused = !isPaused; // Toggle pause
+            isPaused = !isPaused;
         }
 
         if (key == ENTER && screenManager.getScreenState() == 0) {
-            screenManager.setScreenState(3); // Go to main menu
+            screenManager.setScreenState(3);
         }
     }
 }
