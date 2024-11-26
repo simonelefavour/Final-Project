@@ -20,8 +20,8 @@ public class GameScreenManager {
     private ArrayList<BackgroundStar> backgroundStars; // list of stars for other screens
     private ArrayList<Button> levelButtons; // list of buttons for level selection
     private Button goBackButton; // button to go back to the title screen
-    private PFont byteBounceFont; //
-    private PApplet app; //
+    private PFont byteBounceFont;
+    private PApplet app;
 
     // references to the player, level, and enemy manager
     private Player rocket;
@@ -91,6 +91,12 @@ public class GameScreenManager {
 
     // display
     public void displayTitleScreen() {
+        // Reinitialize stars if empty
+        if (stars.isEmpty()) {
+            for (int i = 0; i < 150; i++) {
+                stars.add(new Star(app.random(app.width), app.random(app.height), app));
+            }
+        }
 
         for (Star star : stars) {
             star.update(app);
@@ -188,6 +194,15 @@ public class GameScreenManager {
         for (BackgroundStar star : backgroundStars) {
             star.update();
             star.display();
+        }
+    }
+
+    // restart game - go back to main menu
+    public void resetGame() {
+        screenState = 2; // Set to main menu screen
+        stars = new ArrayList<>();
+        for (int i = 0; i < 150; i++) {
+            stars.add(new Star(app.random(app.width), app.random(app.height), app));
         }
     }
 } // end game screen manager

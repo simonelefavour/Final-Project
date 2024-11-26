@@ -1,9 +1,3 @@
-/* Coder: Simone LeFavour
- * Date: Nov. 26, 2024
- * Description: Final Project for Creative Computation III. Space Shooter game. The Main class 
- * deals with the overall management of the game, including player, enemies, power-ups, and game screens.
- */
-
 package com.space_shooter;
 
 import processing.core.PApplet;
@@ -23,6 +17,7 @@ public class Main extends PApplet {
     private boolean isPaused = false; // game pause
     private int normalShotInterval = 200; // normal shooting interval
     private int rapidFireShotInterval = 100; // faster shooting interval for rapid fire
+    private ArrayList<Star> stars;
 
     public static void main(String[] args) {
         PApplet.main("com.space_shooter.Main");
@@ -33,7 +28,6 @@ public class Main extends PApplet {
     }
 
     public void setup() {
-
         // initialize player rocket
         rocket = new Player(width / 2, height - 50);
         rocket.setLevel(level);
@@ -42,7 +36,7 @@ public class Main extends PApplet {
         projectileManager = new ProjectileManager();
 
         // arraylist for title screen stars
-        ArrayList<Star> stars = new ArrayList<>();
+        stars = new ArrayList<>();
         for (int i = 0; i < 150; i++) {
             stars.add(new Star(random(width), random(height), this));
         }
@@ -118,16 +112,14 @@ public class Main extends PApplet {
     }
 
     private void displayPauseScreen() {
-
         // pause screen
         fill(255);
         textSize(40);
         textAlign(CENTER, CENTER);
-        text("GAME PAUSED\nPress SPACE to Resume", width / 2, height / 2);
+        text("Game Paused\nPress SPACE to Resume", width / 2, height / 2 + 20);
     }
 
     private void displayGameOverScreen(String message) {
-
         // game over
         fill(0, 0, 0, 150);
         rect(0, 0, width, height);
@@ -142,10 +134,13 @@ public class Main extends PApplet {
         Button exitButton = new Button(
                 width / 2 - 100, height / 2 + 120, 200, 50, "EXIT", color(128, 0, 0), color(100, 0, 0), this);
 
-        restartButton.setAction(() -> resetGame());
+        restartButton.setAction(() -> {
+            resetGame();
+            screenManager.setScreenState(3); // Go back to main menu screen
+        });
         exitButton.setAction(() -> {
             resetGame();
-            screenManager.setScreenState(0);
+            screenManager.setScreenState(0); // Go back to title screen
         });
 
         restartButton.display(this);
@@ -158,18 +153,20 @@ public class Main extends PApplet {
     }
 
     private void resetGame() {
-
         // resetting game, reinitialize everything
         rocket = new Player(width / 2, height - 50);
         rocket.setLevel(level);
         enemyManager = new EnemyManager(this, level);
         projectileManager = new ProjectileManager();
         powerUpManager = new PowerUpManager(this);
-        screenManager = new GameScreenManager(this, new ArrayList<>(), rocket, level, enemyManager);
+        stars = new ArrayList<>();
+        for (int i = 0; i < 150; i++) {
+            stars.add(new Star(random(width), random(height), this));
+        }
+        screenManager.resetGame();
     }
 
     public void keyPressed() {
-
         // space bar pressed
         if (key == ' ') {
             isPaused = !isPaused;
@@ -197,4 +194,4 @@ public class Main extends PApplet {
     public static void setEnemyManager(EnemyManager enemyManager) {
         Main.enemyManager = enemyManager;
     }
-} // end main
+} // end main class
