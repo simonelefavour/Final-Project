@@ -1,28 +1,31 @@
 /* Coder: Simone LeFavour
- * Date: Nov. 21, 2024
- * Description: Final Project for Creative Computation III. Space Shooter game. The rocket class deals with the rocket movements.
+ * Date: Nov. 26, 2024
+ * Description: Final Project for Creative Computation III. Space Shooter game. The rocket class
+ * handles the player rocket, including its movement and display on the screen.
  */
 
 package com.space_shooter;
 
 import processing.core.PApplet;
 
-public class Rocket {
-    float x, y;
+public class Rocket extends GameObject {
+    private float size = 20; // rocket size
 
-    public Rocket(PApplet app) {
-        x = app.width / 2;
-        y = app.height / 2;
-    } // end rocket
+    // condtructor
+    public Rocket(float x, float y) {
+        super(x, y);
+    }
 
+    // update rocket position
+    @Override
     public void update(PApplet app) {
-        // rocket rovement with mouse
-        x = app.mouseX;
-        y = app.mouseY;
-    } // end update
+        x = app.mouseX; // x
+        y = app.mouseY; // y
+    }
 
+    // display
     public void display(PApplet app) {
-        app.fill(255); // white rocket
-        app.triangle(x - 10, y + 20, x + 10, y + 20, x, y - 20); // rocket shape
-    } // end display
-} // end rocket class
+        app.fill(255); // white
+        app.triangle(x - 10, y + 20, x + 10, y + 20, x, y - 20); // triangle
+    }
+} // end rocket

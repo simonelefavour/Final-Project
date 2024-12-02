@@ -1,65 +1,75 @@
+/* Coder: Simone LeFavour
+ * Date: Nov. 26, 2024
+ * Description: Final Project for Creative Computation III. Space Shooter game. The enemy class
+ * manages the enemy ships, including their movement, health, shooting mechanics, and interactions.
+ */
+
 package com.space_shooter;
 
 import processing.core.PApplet;
 
 public class Enemy extends GameObject {
-    private int health = 50;
-    private int shootCooldown = 1000; // Enemy shoots every 1 second
-    private long lastShotTime = 0; // Tracks the last time the enemy shot
-    private float speedX; // Horizontal speed of the enemy
+    private int health = 50; // initial health
+    private int shootCooldown; // enemy shots
+    private long lastShotTime = 0; // last time enemy shot
+    private float speedX; // speed
 
-    public Enemy(float x, float y, float speedX) {
+    // constructor
+    public Enemy(float x, float y, float speedX, PApplet app, int level) {
         super(x, y);
-        this.speedX = speedX; // Assign unique speed for this enemy
+        this.speedX = speedX;
+
+        // shooting depend on level
+        if (level == 3) {
+            this.shootCooldown = (int) app.random(500, 1500); // faster shooting for 3
+        } else {
+            this.shootCooldown = (int) app.random(1000, 3000); // default
+        }
     }
 
+    // enemy position and shooting
     @Override
     public void update(PApplet app) {
-        // Horizontal back-and-forth movement
         x += speedX;
 
-        // Reverse direction when reaching screen edges
+        // bounce off screen
         if (x < 0 || x > app.width) {
-            speedX *= -1; // Reverse direction
+            speedX *= -1; // reverse
         }
 
-        // Shooting logic
+        // shooting
         if (app.millis() - lastShotTime >= shootCooldown) {
             shoot(app);
-            lastShotTime = app.millis();
+            lastShotTime = app.millis(); // update last shot
         }
     }
 
+    // displaying enemy
     @Override
     public void display(PApplet app) {
         app.pushMatrix();
-
-        // Translate to enemy position
         app.translate(x, y);
-
-        // Rotate 180 degrees (upside-down)
         app.rotate(PApplet.PI);
-
-        // Draw the triangle
-        app.fill(255, 0, 0); // Red color
-        app.triangle(-10, 10, 10, 10, 0, -20); // Triangle shape
-
+        app.fill(255, 0, 0);
+        app.triangle(-10, 10, 10, 10, 0, -20); // enemy triangle
         app.popMatrix();
     }
 
+    // reduce enemy health when shot
     public void takeDamage() {
         if (health > 0) {
             health -= 10;
         }
     }
 
+    // check if dead
     public boolean isDead() {
         return health <= 0;
     }
 
+    // shooting projectile
     private void shoot(PApplet app) {
-        // Create an enemy projectile starting from the tip of the triangle
-        EnemyProjectile projectile = new EnemyProjectile(x, y + 20); // Adjusted for downward-facing triangle
+        EnemyProjectile projectile = new EnemyProjectile(x, y + 20);
         EnemyManager.addEnemyProjectile(projectile);
     }
-}
+} // end enemy class

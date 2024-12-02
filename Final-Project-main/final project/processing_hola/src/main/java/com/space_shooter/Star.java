@@ -1,6 +1,7 @@
 /* Coder: Simone LeFavour
- * Date: Nov. 21, 2024
- * Description: Final Project for Creative Computation III. Space Shooter game. The star class deals with the stars on the title screen.
+ * Date: Nov. 26, 2024
+ * Description: Final Project for Creative Computation III. Space Shooter game. The Star class
+ * deals with managing the stars on the title screen, including their movement, rotation, and fading effects.
  */
 
 package com.space_shooter;
@@ -35,6 +36,7 @@ public class Star {
     } // end star
 
     public void update(PApplet app) {
+
         // updating position
         x += speedX;
         y += speedY;
@@ -73,4 +75,4 @@ public class Star {
         app.endShape(PApplet.CLOSE);
         app.popMatrix();
     } // end display
-} // end star clas
+} // end star class
